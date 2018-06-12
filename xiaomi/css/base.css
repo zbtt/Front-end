@@ -1,0 +1,50 @@
+.w{width:1227px;margin:0px auto;}/*公共版心*/
+body{width:1349px;}
+li{list-style:none;}
+a{text-decoration: none;}
+input{border:none;background: white;}
+.fl{float:left;}/*向左浮动*/
+.fr{float:right;}/*向右浮动*/
+/*header开始*/
+.site-topbar{background: rgb(51,51,51);height:40px;line-height:40px;font-size:12px;width:1349px;}
+.site-topbar li{display: inline;margin:0.1em;}
+.site-topbar a{color:#b0b0b0;}
+.site-topbar a:hover{color:white;}
+.space{color:#424242;}
+.icon-cart:before {content: "\e93a";}/*购物车ico*/
+.icon-search:before {content: "\e986";}/*搜索放大镜ico*/
+#cart{display: inline-block;width:120px;margin-left:15px;background: rgb(66,66,66);text-align:center;}/*购物车*/
+#cart:hover{background: white;color:#ff6700;}
+.nav{height:100px;position: relative;}
+.site-nav{display:inline-block;position:absolute;left:234px;top:50%;margin-top:-8px;}
+.site-nav li{display: inline-block;text-align:center;padding-right:5px;padding-left:5px}
+.site-nav a:hover{color:#ff6700;}
+.nav img{position: absolute;top:22px;}
+.site-nav a{color:black;}
+#searchForm{width:296px;height:50px;margin-top:25px;position:relative;}
+#searchText{padding:0px 10px;border:1px solid #e0e0e0;height:48px;width:223px;font-size: 14px;position:absolute;right:51px;z-index:1;}
+#searchButton{border:1px solid #e0e0e0;height:50px;width:50px;position:absolute;right:2px;z-index: 2;}
+.search-hot-words{width:157px;height:21px;position:absolute;z-index: 2;top:14px;right:62px;}
+.search-hot-words a{font-size:12px;color:#757575;background: #eee;display: inline-block;margin-left:5px;padding:0px 5px;}
+.search-hot-words a:hover{color:white;background: #ff6700;}
+.icon-search{position: absolute;font-size:24px;z-index: 2;color:#616161;right:14px;top:14px;}
+.searchIco-hover{color:white;}
+.searchButton-hover{background:#ff6700;color:white;}
+/*header结束*/
+.bar-slide{height:460px;position:relative;}/*产品导航和轮播图*/
+.bar{height:420px;width:235px;padding:20px 0px;background: rgba(0,0,0,0.6);position: absolute;z-index: 2;}/*产品导航*/
+.bar a{color:white;}
+.bar li{height:42px;padding:0px 20px 0px 30px;font-size:14px;line-height: 42px;}
+.bar li:hover{background:#ff6700; }
+.bar .fr{color:#b0b0b0;font-weight:bold;font-size:18px;}
+.list{position:absolute;left:235px;top:0px;height:460px;z-index:2;width:795px;background: white;padding-left:20px;}
+.list-container li{height:40px;line-height:40px;font-size:14px;width:260px;padding:20px 0px;display: inline-block;}
+.list-container img{vertical-align:middle;width:40px;height:40px;}
+.list-container a{color:black;}
+.slide{position:absolute;z-index:1;top:0px;}
+.slideButton{color:#b0b0b0;font-size:50px;display:inline-block;margin:auto;width:41px;height:69px; top:0px;bottom: 0px;opacity: 0.5;cursor:pointer;}
+.slideButton:hover{background: rgba(0,0,0,0.7);color:white;}
+#preButton{position:absolute;left:235px;z-index:2;}
+#nextButton{position:absolute;right:0px;z-index:2;}
+.underButton{position:absolute;right:30px;bottom: 20px;z-index:2;}
+.button-slide{display: inline-block;width:6px;height:6px;margin:5px;border:2px solid #b0b0b0;border-radius: 50%;background: #424242;cursor:pointer;}
