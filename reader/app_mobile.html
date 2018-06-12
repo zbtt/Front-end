@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+	<meta name="format-detection" content="telephone=no">
+	<link rel="stylesheet" href="css/normalize.css">
+	<link rel="stylesheet" href="css/index1.css">
+	<title>Reader</title>
+</head>
+<body>
+	<div class="container">
+		<div class="action-container">
+			<div id="action-mid" class="action-mid"></div>
+		</div>
+		<div id="top-nav" class="top-nav" style="display:none">
+			<div class="icon-back"></div>
+			<div class="nav-title">返回书架</div>
+		</div>
+		<div id="fiction_chapter_title">
+			<div id="fiction_container" class="read-content">
+				
+				
+			</div>
+
+		</div>
+		<div class="button-bar">
+			<ul class="tab">
+				<li id="prev_button">上一章</li>
+				<li id="next_button">下一章</li>
+			</ul>
+		</div>
+		<div class="bk-nav" style="display:none"></div>
+		<div id="font-nav" class="font-nav" style="display:none">
+			<div class="child-mod">
+				<span>字号</span>
+				<button id="large-font" class="font-button">大</button>
+				<button id="small-font" class="font-button">小</button>
+			</div>
+			<div class="child-mod">
+				<span>背景</span>
+				<div class="bk-container">
+					<button id="backgro1" class="backgro"></button>
+					<button id="backgro2" class="backgro"></button>
+					<button id="backgro3" class="backgro"></button>
+					<button id="backgro4" class="backgro"></button>
+					<button id="backgro5" class="backgro"></button>
+				</div>
+			</div>
+		</div>
+		<div class="bk-bottom-nav" style="display:none"></div>
+		<div id="bottom-nav" class="bottom-nav" style="display:none">
+			<div class="container-content">
+				<div class="icon-content"></div>
+				<div class="nav-content">目录</div>
+			</div>
+			<div id="container-font" class="container-font">
+				<div class="icon-font"></div>
+				<div class="nav-font">字体</div>
+			</div>
+			<div class="container-trans">
+				<div class="trans-night">
+					<div class="icon-night"></div>
+					<div class="nav-night">夜间</div>
+				</div>
+				<div class="trans-day" style="display:none">
+					<div class="icon-day"></div>
+					<div class="nav-day">白天</div>
+				</div>
+			</div>	
+		</div>
+	</div>
+	<script src="lib/jquery-3.3.1.js"></script>
+	<script src="js/jquery.base64.js"></script>
+	<script src="js/jquery.jsonp.js"></script>
+	<script>
+		(function(){
+			'use strict'
+			var Util=(function(){
+				var prefix='html5_reader_';
+				var StorageGetter=function(key){
+					return localStorage.getItem(prefix+key);
+				}
+				var StorageSetter=function(key,val){
+					return localStorage.setItem(prefix+key,val);
+				}
+				var getBSONP=function(url,callback){
+					return $.jsonp({
+						url:url,
+						cache:true,
+						callback:'duokan_fiction_chapter',
+						success:function(result){
+							var data=$.base64.decode(result);
+							var json=decodeURIComponent(escape(data));
+							callback(json);
+						}
+					})
+				}
+				return {
+					getBSONP:getBSONP,
+					StorageGetter:StorageGetter,
+					StorageSetter:StorageSetter
+				}
+			})();
+			var Dom={
+				top_nav:$('#top-nav'),
+				bk_nav:$('.bk-nav'),
+				font_nav:$('#font-nav'),
+				bk_bottom_nav:$('.bk-bottom-nav'),
+				bottom_nav:$('#bottom-nav'),
+				trans_night:$('.trans-night'),
+				trans_day:$('.trans-day'),
+				fiction_chapter_title:$('#fiction_chapter_title'),
+				bk_container:$('.bk-container'),
+				fiction_container:$('#fiction_container'),
+				tab:$('.tab')
+			}
+			var Win=$(window);
+			var Doc=$(document);
+			var initFontSize=parseInt(Util.StorageGetter('font-size'));
+			if(!initFontSize){
+				initFontSize=14;
+			}
+			var maxFontSize=20;
+			var minFontSize=8;
+			var RootContainer=$('body');
+			var readerModel;
+			var readerUI;
+			var initBackground=Util.StorageGetter('background');
+			if(!initBackground){
+				initBackground='#e9dfc7';
+			}
+			var initTabBackground=Util.StorageGetter('tabBackground');
+			if(!initTabBackground){
+				initTabBackground='#835129';
+			}
+
+			Dom.fiction_container.css('font-size',initFontSize);
+			Dom.tab.css('background',initTabBackground);
+			RootContainer.css('background',initBackground);
+			function main(){
+				//整个项目的入口函数
+				readerModel=ReaderModel();
+				readerUI=ReaderBaseFrame(Dom.fiction_container);
+				readerModel.init(function(data){
+					readerUI(data);
+				});
+				EventHanlder();
+			}
+			function ReaderModel(){
+				//实现阅读器相关的数据交互方法
+				var Chapter_id;
+				var ChapterTotal;
+				var initChapter_id=Util.StorageGetter('Chapter_id');
+
+				if(initChapter_id){
+					Chapter_id=initChapter_id;
+				}
+				var init=function(UIcallback){
+					// getFictionInfo(function(){
+					// 	getCurChapterContent(Chapter_id,function(data){
+					// 		UIcallback&&UIcallback(data);
+
+					// 	});
+					// });
+					initPromise().then(function(){
+						return initPromise();
+					}).then(function(){
+						return getCurChapterContentPromise();
+					}).then(function(data){
+						UIcallback&&UIcallback(data);
+					});
+				}
+				var initPromise=function(){
+					return new Promise(function(resolve,reject){
+						resolve();
+					});
+				}
+				var getFictionInfo=function(callback){
+					$.get('data/chapter.json',function(data){
+						//获得章节信息之后的回调
+						//Chapter_id=data.chapters[1].chapter_id;
+						ChapterTotal=data.chapters[1].length;
+						callback&&callback();
+					},'json');
+				}
+				var getFictionInfoPromise=function(){
+					return new Promise(function(resolve,reject){
+						$.get('data/chapter.json',function(data){
+							if(data.result==0){
+						//获得章节信息之后的回调
+						//Chapter_id=data.chapters[1].chapter_id;
+						ChapterTotal=data.chapters[1].length;
+						resolve();
+					}else{
+						reject();
+					}
+				},'json');
+					});
+				}
+				var getCurChapterContent=function(chapter_id,callback){
+					//获得当前章节内容
+					$.get('data/data'+Chapter_id+'.json',function(data){
+						if(data.result==0){
+							var url=data.jsonp;
+							Util.getBSONP(url,function(data){
+								callback&&callback(data);
+							});
+						}
+					},'json')
+				}
+				var getCurChapterContentPromise=function(){
+					return new Promise(function(resolve,reject){
+						$.get('data/data'+Chapter_id+'.json',function(data){
+							if(data.result==0){
+								var url=data.jsonp;
+								Util.getBSONP(url,function(data){
+								//callback&&callback(data);
+								resolve(data);
+							});
+							}else{
+								reject();
+							}
+						},'json')
+					});
+				}
+				var preChapter=function(UIcallback){
+					Chapter_id=parseInt(Chapter_id,10);
+					if(Chapter_id==0){
+						return;
+					}
+					Chapter_id-=1;
+					getCurChapterContent(Chapter_id,UIcallback);
+					Util.StorageSetter('Chapter_id',Chapter_id);
+				}
+				var nextChapter=function(UIcallback){
+					Chapter_id=parseInt(Chapter_id,10);
+					if(Chapter_id==ChapterTotal){
+						return;
+					}
+					Chapter_id+=1;
+					getCurChapterContent(Chapter_id,UIcallback);
+					Util.StorageSetter('Chapter_id',Chapter_id);
+				}
+				return{
+					init:init,
+					preChapter:preChapter,
+					nextChapter:nextChapter
+				}
+			}
+			function ReaderBaseFrame(container){
+				//渲染基本的UI结构
+				function parseChapterData(jsonData){
+					var jsonObj=JSON.parse(jsonData);
+					var html='<h4>'+jsonObj.t+'</h4>';
+					for(var i=0;i<jsonObj.p.length;i++){
+						html+='<p>'+jsonObj.p[i]+'</p>';
+					}
+					return html;
+				}
+				return function(data){
+					container.html(parseChapterData(data));
+				}
+			}
+			function EventHanlder(){
+				//交互的事件绑定
+				//上下边栏唤出
+				$('#action-mid').click(function(){
+					if(Dom.top_nav.css('display')=='none'){
+						Dom.top_nav.show();
+						Dom.bk_bottom_nav.show();
+						Dom.bottom_nav.show();
+					}else{
+						Dom.top_nav.hide();
+						Dom.bk_bottom_nav.hide();
+						Dom.bottom_nav.hide();
+						Dom.bk_nav.hide();
+						Dom.font_nav.hide();
+					}
+				});
+				//字体设置面板唤出
+				$('#container-font').click(function(){
+					if(Dom.font_nav.css('display')=='none'){
+						Dom.bk_nav.show();
+						Dom.font_nav.show();
+					}else{
+						Dom.bk_nav.hide();
+						Dom.font_nav.hide();
+					}
+				});
+				Win.scroll(function(){
+					Dom.top_nav.hide();
+					Dom.bk_bottom_nav.hide();
+					Dom.bottom_nav.hide();
+					Dom.bk_nav.hide();
+					Dom.font_nav.hide();
+				});
+				//字体大小设置
+				$('#large-font').click(function(){
+					if(initFontSize<maxFontSize){
+						initFontSize+=1;
+						Dom.fiction_container.css('font-size',initFontSize);
+						Util.StorageSetter('font-size',initFontSize);
+					}
+				});
+				$('#small-font').click(function(){
+					if(initFontSize>minFontSize){
+						initFontSize-=1;
+						Dom.fiction_container.css('font-size',initFontSize);
+						Util.StorageSetter('font-size',initFontSize);
+					}
+				});
+				//背景颜色切换
+				$('#backgro1').click(function(){
+					initBackground=$(this).css('background');
+					RootContainer.css('background',initBackground);
+					Util.StorageSetter('background',initBackground);
+					Dom.tab.css('background','#835129');
+					Util.StorageSetter('tabBackground',null);
+				});
+				$('#backgro2').click(function(){
+					initBackground=$(this).css('background');
+					RootContainer.css('background',initBackground);
+					Dom.tab.css('background','#835129');
+					Util.StorageSetter('background',initBackground);
+					Util.StorageSetter('tabBackground',null);
+				});
+				$('#backgro3').click(function(){
+					initBackground=$(this).css('background');
+					RootContainer.css('background',initBackground);
+					Dom.tab.css('background','#835129');
+					Util.StorageSetter('background',initBackground);
+					Util.StorageSetter('tabBackground',null);
+				});
+				$('#backgro4').click(function(){
+					initBackground=$(this).css('background');
+					RootContainer.css('background',initBackground);
+					Dom.tab.css('background','#835129');
+					Util.StorageSetter('background',initBackground);
+					Util.StorageSetter('tabBackground',null);
+				});
+				$('#backgro5').click(function(){
+					initBackground=$(this).css('background');
+					initTabBackground=$(this).css('background');
+					RootContainer.css('background',initBackground);
+					Dom.tab.css('background',initTabBackground);
+					Util.StorageSetter('background',initBackground);
+					Util.StorageSetter('tabBackground',initBackground);
+				});
+				//夜间模式切换
+				$('.container-trans').click(function(){
+					if(Dom.trans_night.css('display')=='none'){
+						Dom.trans_night.show();
+						Dom.trans_day.hide();
+						$('#backgro2').click();
+					}else{
+						Dom.trans_night.hide();
+						Dom.trans_day.show();
+						$('#backgro5').click();
+					}
+				});
+				$('#prev_button').click(function(){
+					readerModel.preChapter(function(data){
+						readerUI(data);
+					});
+					
+				});
+				$('#next_button').click(function(){
+					readerModel.nextChapter(function(data){
+						readerUI(data);
+					});
+
+				});
+			}
+			main();
+		})();
+	</script>
+</body>
+</html>
